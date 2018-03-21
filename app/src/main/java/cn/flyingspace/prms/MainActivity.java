@@ -3,6 +3,7 @@ package cn.flyingspace.prms;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -26,16 +27,13 @@ import okhttp3.Response;
 
 import static cn.flyingspace.prms.Setting.API_ITEMS;
 
-public class MainActivity extends BaseActivity implements View.OnClickListener {
+public class MainActivity extends BaseActivity {
     private GetItemsTask mGetItemsTask = null;
     private Token token;
 
     private TextView mInfoView;
-    private Button mFCheckInButton;
-    private Button mFCheckOutButton;
-    private Button mACheckInButton;
-    private Button mACheckOutButton;
-    private LinearLayout mLayout;
+    private LinearLayout mDailyLayout;
+    private LinearLayout mTempLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,23 +44,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
         mInfoView = (TextView) findViewById(R.id.info);
 
-        mLayout = findViewById(R.id.meeting_container);
-
-        mFCheckInButton = findViewById(R.id.f_check_in_button);
-        mFCheckInButton.setEnabled(false);
-        mFCheckInButton.setOnClickListener(this);
-
-        mFCheckOutButton = findViewById(R.id.f_check_out_button);
-        mFCheckOutButton.setEnabled(false);
-        mFCheckOutButton.setOnClickListener(this);
-
-        mACheckInButton = findViewById(R.id.a_check_in_button);
-        mACheckInButton.setEnabled(false);
-        mACheckInButton.setOnClickListener(this);
-
-        mACheckOutButton = findViewById(R.id.a_check_out_button);
-        mACheckOutButton.setEnabled(false);
-        mACheckOutButton.setOnClickListener(this);
+        mDailyLayout = findViewById(R.id.daily_container);
+        mTempLayout = findViewById(R.id.temp_container);
 
         Button mLogoutButton = findViewById(R.id.log_out_button);
         mLogoutButton.setOnClickListener(new View.OnClickListener() {
@@ -99,29 +82,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         startActivity(intent);
     }
 
-    @Override
-    public void onClick(View v) {
-        int index = 0;
-        switch (v.getId()) {
-            case R.id.f_check_in_button:
-                index = 1;
-                break;
-            case R.id.f_check_out_button:
-                index = 2;
-                break;
-            case R.id.a_check_in_button:
-                index = 3;
-                break;
-            case R.id.a_check_out_button:
-                index = 4;
-                break;
-        }
-        Intent intent = new Intent(MainActivity.this, ScannerActivity.class);
-        intent.putExtra("type", 1);
-        intent.putExtra("index", index);
-        startActivity(intent);
-    }
-
     public class GetItemsTask extends AsyncTask<Void, Void, String> {
 
         @Override
@@ -154,52 +114,39 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             ItemsResult result = gson.fromJson(response, ItemsResult.class);
 
             if (result.isAuth_result()) {
-                int index = result.getIndex();
-                switch (index) {
-                    case 0:
-                        mFCheckInButton.setEnabled(true);
-                        break;
-                    case 1:
-                        mFCheckInButton.setEnabled(false);
-                        mFCheckInButton.setText("已签");
-                        mFCheckOutButton.setEnabled(true);
-                        break;
-                    case 2:
-                        mFCheckInButton.setEnabled(false);
-                        mFCheckInButton.setText("已签");
-                        mFCheckOutButton.setEnabled(false);
-                        mFCheckOutButton.setText("已签");
-                        mACheckInButton.setEnabled(true);
-                        break;
-                    case 3:
-                        mFCheckInButton.setEnabled(false);
-                        mFCheckInButton.setText("已签");
-                        mFCheckOutButton.setEnabled(false);
-                        mFCheckOutButton.setText("已签");
-                        mACheckInButton.setEnabled(false);
-                        mACheckInButton.setText("已签");
-                        mACheckOutButton.setEnabled(true);
-                        break;
-                    case 4:
-                        mFCheckInButton.setEnabled(false);
-                        mFCheckInButton.setText("已签");
-                        mFCheckOutButton.setEnabled(false);
-                        mFCheckOutButton.setText("已签");
-                        mACheckInButton.setEnabled(false);
-                        mACheckInButton.setText("已签");
-                        mACheckOutButton.setEnabled(false);
-                        mACheckOutButton.setText("已签");
-                        break;
+                // 日常签到项目
+                mDailyLayout.removeAllViews();
+                int times = result.getDaily_times();
+                String[] time_interval = result.getDaily_time_interval().split(";");
+                for (int i = 0; i < times; i++) {
+                    final int index = i + 1;
+                    Button btn = new Button(getBaseContext());
+                    btn.setText(time_interval[i]);
+                    if (i + 1 <= result.getDaily_status()) {
+                        btn.setEnabled(false);
+                    } else {
+                        btn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Intent intent = new Intent(MainActivity.this, ScannerActivity.class);
+                                intent.putExtra("type", 1);
+                                intent.putExtra("index", index);
+                                startActivity(intent);
+                            }
+                        });
+                    }
+                    mDailyLayout.addView(btn);
                 }
-                mLayout.removeAllViews();
-                List<Integer> meeting_list = result.getMeeting_index();
-                List<Integer> meeting_ok = result.getMeeting_ok();
-                for (int i = 0; i < meeting_list.size(); i++) {
-                    final int meeting_index = meeting_list.get(i);
-                    String time = result.getMeeting_time().get(i);
+                // 临时签到项目
+                mTempLayout.removeAllViews();
+                List<Integer> temp_id = result.getTemp_id();
+                List<Integer> temp_ok = result.getTemp_ok();
+                for (int i = 0; i < temp_id.size(); i++) {
+                    final int id = temp_id.get(i);
+                    String time = result.getTemp_time().get(i);
                     Button btn = new Button(getBaseContext());
                     btn.setText(time);
-                    if (meeting_ok.contains(meeting_index)) {
+                    if (temp_ok.contains(id)) {
                         // 已签到
                         btn.setEnabled(false);
                     } else {
@@ -209,15 +156,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                             public void onClick(View v) {
                                 Intent intent = new Intent(MainActivity.this, ScannerActivity.class);
                                 intent.putExtra("type", 2);
-                                intent.putExtra("index", meeting_index);
+                                intent.putExtra("index", id);
                                 startActivity(intent);
                             }
                         });
                     }
-                    mLayout.addView(btn);
+                    mTempLayout.addView(btn);
                 }
-
             } else {
+                // Token无效
                 Toast.makeText(getBaseContext(), "失败：Token失效，请重新登录", Toast.LENGTH_SHORT).show();
                 logout();
             }

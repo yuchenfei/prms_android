@@ -141,6 +141,11 @@ public class ScannerActivity extends BaseActivity {
                         Toast.makeText(getBaseContext(), "签到失败", Toast.LENGTH_SHORT).show();
                         finish();
                         break;
+                    case -2:
+                        // 时间不符
+                        Toast.makeText(getBaseContext(), "时间不符", Toast.LENGTH_SHORT).show();
+                        finish();
+                        break;
                     case 0:
                         // 长期二维码，等待二维码刷新，继续扫描
                         resume(barcodeView);

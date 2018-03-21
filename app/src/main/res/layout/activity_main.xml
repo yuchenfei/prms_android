@@ -39,50 +39,13 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="上午：" />
+            android:text="日常签到："/>
 
         <LinearLayout
+            android:id="@+id/daily_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/f_check_in_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="签入" />
-
-            <Button
-                android:id="@+id/f_check_out_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="签出" />
-
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="下午：" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/a_check_in_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="签入" />
-
-            <Button
-                android:id="@+id/a_check_out_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="签出" />
+            android:orientation="vertical">
 
         </LinearLayout>
 
@@ -92,10 +55,10 @@
             android:text="会议签到：" />
 
         <LinearLayout
-            android:id="@+id/meeting_container"
+            android:id="@+id/temp_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
         </LinearLayout>
 

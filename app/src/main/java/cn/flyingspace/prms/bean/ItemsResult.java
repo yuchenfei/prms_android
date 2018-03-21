@@ -10,14 +10,21 @@ public class ItemsResult {
 
     /**
      * auth_result : false
-     * index : 0
+     * daily_times : 1
+     * daily_time_interval : 08:00-09:00
+     * daily_status : 0
+     * temp_id : [1]
+     * temp_time : ["08:00"]
+     * temp_ok : [1]
      */
 
     private boolean auth_result;
-    private int index;
-    private List<Integer> meeting_index;
-    private List<String> meeting_time;
-    private List<Integer> meeting_ok;
+    private int daily_times;
+    private String daily_time_interval;
+    private int daily_status;
+    private List<Integer> temp_id;
+    private List<String> temp_time;
+    private List<Integer> temp_ok;
 
     public boolean isAuth_result() {
         return auth_result;
@@ -27,35 +34,51 @@ public class ItemsResult {
         this.auth_result = auth_result;
     }
 
-    public int getIndex() {
-        return index;
+    public int getDaily_times() {
+        return daily_times;
     }
 
-    public void setIndex(int index) {
-        this.index = index;
+    public void setDaily_times(int daily_times) {
+        this.daily_times = daily_times;
     }
 
-    public List<Integer> getMeeting_index() {
-        return meeting_index;
+    public String getDaily_time_interval() {
+        return daily_time_interval;
     }
 
-    public void setMeeting_index(List<Integer> meeting_index) {
-        this.meeting_index = meeting_index;
+    public void setDaily_time_interval(String daily_time_interval) {
+        this.daily_time_interval = daily_time_interval;
     }
 
-    public List<String> getMeeting_time() {
-        return meeting_time;
+    public int getDaily_status() {
+        return daily_status;
     }
 
-    public void setMeeting_time(List<String> meeting_time) {
-        this.meeting_time = meeting_time;
+    public void setDaily_status(int daily_status) {
+        this.daily_status = daily_status;
     }
 
-    public List<Integer> getMeeting_ok() {
-        return meeting_ok;
+    public List<Integer> getTemp_id() {
+        return temp_id;
     }
 
-    public void setMeeting_ok(List<Integer> meeting_ok) {
-        this.meeting_ok = meeting_ok;
+    public void setTemp_id(List<Integer> temp_id) {
+        this.temp_id = temp_id;
+    }
+
+    public List<String> getTemp_time() {
+        return temp_time;
+    }
+
+    public void setTemp_time(List<String> temp_time) {
+        this.temp_time = temp_time;
+    }
+
+    public List<Integer> getTemp_ok() {
+        return temp_ok;
+    }
+
+    public void setTemp_ok(List<Integer> temp_ok) {
+        this.temp_ok = temp_ok;
     }
 }
