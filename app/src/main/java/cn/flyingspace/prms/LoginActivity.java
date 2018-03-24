@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import java.io.IOException;
 import java.util.Timer;
@@ -51,7 +52,7 @@ public class LoginActivity extends BaseActivity {
 
     private String mImei;
 
-    private EditText mUsernameView;
+    private EditText mPhoneView;
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
@@ -62,7 +63,7 @@ public class LoginActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        mUsernameView = (EditText) findViewById(R.id.username);
+        mPhoneView = (EditText) findViewById(R.id.phone);
         mPasswordView = (EditText) findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -141,11 +142,11 @@ public class LoginActivity extends BaseActivity {
         }
 
         // Reset errors.
-        mUsernameView.setError(null);
+        mPhoneView.setError(null);
         mPasswordView.setError(null);
 
         // Store values at the time of the login attempt.
-        String username = mUsernameView.getText().toString();
+        String phone = mPhoneView.getText().toString();
         String password = mPasswordView.getText().toString();
 
         boolean cancel = false;
@@ -159,9 +160,9 @@ public class LoginActivity extends BaseActivity {
         }
 
         // Check for a valid username.
-        if (TextUtils.isEmpty(username)) {
-            mUsernameView.setError(getString(R.string.error_field_required));
-            focusView = mUsernameView;
+        if (TextUtils.isEmpty(phone)) {
+            mPhoneView.setError(getString(R.string.error_field_required));
+            focusView = mPhoneView;
             cancel = true;
         }
 
@@ -173,7 +174,7 @@ public class LoginActivity extends BaseActivity {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(username, password);
+            mAuthTask = new UserLoginTask(phone, password);
             mAuthTask.execute((Void) null);
         }
     }
@@ -217,11 +218,11 @@ public class LoginActivity extends BaseActivity {
 
     public class UserLoginTask extends AsyncTask<Void, Void, String> {
 
-        private final String mUsername;
+        private final String mPhone;
         private final String mPassword;
 
-        UserLoginTask(String username, String password) {
-            mUsername = username;
+        UserLoginTask(String phone, String password) {
+            mPhone = phone;
             mPassword = password;
         }
 
@@ -230,7 +231,7 @@ public class LoginActivity extends BaseActivity {
             OkHttpClient client = new OkHttpClient();
 
             RequestBody body = new FormBody.Builder()
-                    .add("pid", encryptData(mUsername))  // 加密数据
+                    .add("phone", encryptData(mPhone))  // 加密数据
                     .add("password", encryptData(mPassword))
                     .add("imei", encryptData(mImei))
                     .build();
@@ -252,8 +253,15 @@ public class LoginActivity extends BaseActivity {
             mAuthTask = null;
             showProgress(false);
 
-            Gson gson = new Gson();
-            LoginResult result = gson.fromJson(response, LoginResult.class);
+            LoginResult result = null;
+            try {
+                Gson gson = new Gson();
+                result = gson.fromJson(response, LoginResult.class);
+            } catch (JsonSyntaxException e) {
+                e.printStackTrace();
+                Toast.makeText(getBaseContext(), "网络异常请重试！", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             if (result.isResult()) {
                 // 存储token

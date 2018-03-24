@@ -2,7 +2,7 @@
     <string name="app_name">prms</string>
     <string name="title_activity_login">LoginActivity</string>
 
-    <string name="prompt_username">用户名</string>
+    <string name="prompt_phone">手机号</string>
     <string name="prompt_password">密码</string>
     <string name="action_sign_in">登录</string>
     <string name="action_sign_in_short">登录</string>

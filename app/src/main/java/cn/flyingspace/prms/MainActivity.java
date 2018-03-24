@@ -66,6 +66,7 @@ public class MainActivity extends BaseActivity {
         super.onStart();
         if (token.get().isEmpty()) {
             logout();
+            return;
         } else {
             JWT jwt = new JWT(token.get());
             Claim claim = jwt.getClaim("name");
