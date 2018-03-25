@@ -1,8 +1,15 @@
 package cn.flyingspace.prms;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Toast;
@@ -23,12 +30,17 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import static cn.flyingspace.prms.RSA.encryptData;
 import static cn.flyingspace.prms.Setting.API_CHECKIN;
 
 
 public class ScannerActivity extends BaseActivity {
+    public static final String TAG = "ScannerActivity";
+
+    /* 相机请求码 */
+    private static final int REQUEST_CAMERA = 0;
+
     private CheckInTask mCheckInTask = null;
+
     private int type = 0;
     private int index = 0;
     private Token token;
@@ -61,27 +73,73 @@ public class ScannerActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scanner);
 
+        barcodeView = findViewById(R.id.barcode_scanner);
+
         Intent intent = getIntent();
         type = intent.getIntExtra("type", 0);
         index = intent.getIntExtra("index", 0);
 
         token = new Token(getApplicationContext());
 
-        barcodeView = (DecoratedBarcodeView) findViewById(R.id.barcode_scanner);
-        barcodeView.decodeContinuous(callback);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED) {
+            barcodeView.decodeContinuous(callback);
+        } else {
+            // 权限未被授予,申请权限
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},
+                    REQUEST_CAMERA);
+        }
+    }
+
+
+    /**
+     * 申请权限的回调
+     *
+     * @param requestCode  requestCode
+     * @param permissions  permissions
+     * @param grantResults grantResults
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_CAMERA) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // 授权成功
+                barcodeView.decodeContinuous(callback);
+            } else {
+                // 授权被拒绝
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                        Manifest.permission.CAMERA)) {
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},
+                            REQUEST_CAMERA);
+                } else {
+                    Snackbar.make(barcodeView, R.string.permission_camera_not_granted,
+                            Snackbar.LENGTH_INDEFINITE).setAction(R.string.setting,
+                            new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    // 跳转到设置界面
+                                    Intent intent = new Intent();
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    intent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
+                                    intent.setData(Uri.fromParts("package", getPackageName(), null));
+                                    startActivity(intent);
+                                }
+                            }).show();
+                }
+            }
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
         barcodeView.resume();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-
         barcodeView.pause();
     }
 

@@ -9,4 +9,7 @@
     <string name="error_invalid_password">密码太短</string>
     <string name="error_incorrect_password">无效的密码</string>
     <string name="error_field_required">此字段必填</string>
+    <string name="permission_camera_not_granted">未获取相机权限，请到设置中允许</string>
+    <string name="permission_read_phone_state_not_granted">未获取读取手机信息权限，请到设置中允许</string>
+    <string name="setting">设置</string>
 </resources>

@@ -7,13 +7,16 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -44,7 +47,10 @@ import static cn.flyingspace.prms.RSA.encryptData;
 import static cn.flyingspace.prms.Setting.API_AUTH;
 
 public class LoginActivity extends BaseActivity {
-    private static final int READ_PHONE_STATE_REQUEST_CODE = 0;
+    public static final String TAG = "LoginActivity";
+
+    /* 设备信息请求码 */
+    private static final int REQUEST_PHONE_STATE = 0;
 
     private static Boolean isExit = false;
 
@@ -62,9 +68,8 @@ public class LoginActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
-        mPhoneView = (EditText) findViewById(R.id.phone);
-        mPasswordView = (EditText) findViewById(R.id.password);
+        mPhoneView = findViewById(R.id.phone);
+        mPasswordView = findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -75,22 +80,23 @@ public class LoginActivity extends BaseActivity {
                 return false;
             }
         });
-
-        Button mSignInButton = (Button) findViewById(R.id.sign_in_button);
+        Button mSignInButton = findViewById(R.id.sign_in_button);
         mSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
                 attemptLogin();
             }
         });
-
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, READ_PHONE_STATE_REQUEST_CODE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE},
+                    REQUEST_PHONE_STATE);
         } else {
             TelephonyManager tm = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
+            assert tm != null;
             this.mImei = tm.getImei();
         }
     }
@@ -100,12 +106,31 @@ public class LoginActivity extends BaseActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == READ_PHONE_STATE_REQUEST_CODE) {
+        if (requestCode == REQUEST_PHONE_STATE) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 TelephonyManager tm = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
+                assert tm != null;
                 this.mImei = tm.getImei();
             } else {
-                ActivityCollector.finishAll();
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                        Manifest.permission.READ_PHONE_STATE)) {
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE},
+                            REQUEST_PHONE_STATE);
+                }else{
+                    Snackbar.make(mLoginFormView, R.string.permission_read_phone_state_not_granted,
+                            Snackbar.LENGTH_INDEFINITE).setAction(R.string.setting,
+                            new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    // 跳转到设置界面
+                                    Intent intent = new Intent();
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    intent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
+                                    intent.setData(Uri.fromParts("package", getPackageName(), null));
+                                    startActivity(intent);
+                                }
+                            }).show();
+                }
             }
         }
     }
@@ -119,8 +144,8 @@ public class LoginActivity extends BaseActivity {
     }
 
     private void exitBy2Click() {
-        Timer tExit = null;
-        if (isExit == false) {
+        Timer tExit;
+        if (!isExit) {
             isExit = true;  // 准备退出
             Toast.makeText(this, "再按一次退出程序", Toast.LENGTH_SHORT).show();
             tExit = new Timer();
@@ -188,32 +213,25 @@ public class LoginActivity extends BaseActivity {
         // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
         // for very easy animations. If available, use these APIs to fade-in
         // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-            mLoginFormView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
+        mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+        mLoginFormView.animate().setDuration(shortAnimTime).alpha(
+                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+            }
+        });
 
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
+        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+        mProgressView.animate().setDuration(shortAnimTime).alpha(
+                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
     }
 
     public class UserLoginTask extends AsyncTask<Void, Void, String> {
@@ -253,7 +271,7 @@ public class LoginActivity extends BaseActivity {
             mAuthTask = null;
             showProgress(false);
 
-            LoginResult result = null;
+            LoginResult result;
             try {
                 Gson gson = new Gson();
                 result = gson.fromJson(response, LoginResult.class);
