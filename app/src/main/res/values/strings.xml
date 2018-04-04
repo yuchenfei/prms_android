@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">prms</string>
+    <string name="app_name">prms签到</string>
     <string name="title_activity_login">LoginActivity</string>
 
     <string name="prompt_phone">手机号</string>

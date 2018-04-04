@@ -118,25 +118,31 @@ public class MainActivity extends BaseActivity {
                 // 日常签到项目
                 mDailyLayout.removeAllViews();
                 int times = result.getDaily_times();
-                String[] time_interval = result.getDaily_time_interval().split(";");
-                for (int i = 0; i < times; i++) {
-                    final int index = i + 1;
-                    Button btn = new Button(getBaseContext());
-                    btn.setText(time_interval[i]);
-                    if (i + 1 <= result.getDaily_status()) {
-                        btn.setEnabled(false);
-                    } else {
-                        btn.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                Intent intent = new Intent(MainActivity.this, ScannerActivity.class);
-                                intent.putExtra("type", 1);
-                                intent.putExtra("index", index);
-                                startActivity(intent);
-                            }
-                        });
+                if (times > 0) {
+                    String[] time_interval = result.getDaily_time_interval().split(";");
+                    for (int i = 0; i < times; i++) {
+                        final int index = i + 1;
+                        Button btn = new Button(getBaseContext());
+                        btn.setText(time_interval[i]);
+                        if (i + 1 <= result.getDaily_status()) {
+                            btn.setEnabled(false);
+                        } else {
+                            btn.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Intent intent = new Intent(MainActivity.this, ScannerActivity.class);
+                                    intent.putExtra("type", 1);
+                                    intent.putExtra("index", index);
+                                    startActivity(intent);
+                                }
+                            });
+                        }
+                        mDailyLayout.addView(btn);
                     }
-                    mDailyLayout.addView(btn);
+                } else {
+                    TextView tv = new TextView(getBaseContext());
+                    tv.setText("教师还未设置日常签到");
+                    mDailyLayout.addView(tv);
                 }
                 // 临时签到项目
                 mTempLayout.removeAllViews();
