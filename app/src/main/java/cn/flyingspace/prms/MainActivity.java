@@ -1,6 +1,11 @@
 package cn.flyingspace.prms;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.RectF;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.RoundRectShape;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,6 +20,8 @@ import com.auth0.android.jwt.JWT;
 import com.google.gson.Gson;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -28,6 +35,8 @@ import okhttp3.Response;
 import static cn.flyingspace.prms.Setting.API_ITEMS;
 
 public class MainActivity extends BaseActivity {
+    public static final String TAG = "MainActivity";
+
     private GetItemsTask mGetItemsTask = null;
     private Token token;
 
@@ -42,7 +51,7 @@ public class MainActivity extends BaseActivity {
 
         token = new Token(getApplicationContext());
 
-        mInfoView = (TextView) findViewById(R.id.info);
+        mInfoView = findViewById(R.id.info);
 
         mDailyLayout = findViewById(R.id.daily_container);
         mTempLayout = findViewById(R.id.temp_container);
@@ -83,6 +92,15 @@ public class MainActivity extends BaseActivity {
         startActivity(intent);
     }
 
+    private ShapeDrawable btnDrawable(String colorString) {
+        float[] outerRadian = new float[]{20, 20, 20, 20, 20, 20, 20, 20};
+        RoundRectShape roundRectShape = new RoundRectShape(outerRadian, null, null);
+        ShapeDrawable drawable = new ShapeDrawable(roundRectShape);
+        drawable.getPaint().setColor(Color.parseColor(colorString));
+        drawable.getPaint().setStyle(Paint.Style.FILL);
+        return drawable;
+    }
+
     public class GetItemsTask extends AsyncTask<Void, Void, String> {
 
         @Override
@@ -113,10 +131,11 @@ public class MainActivity extends BaseActivity {
 
             Gson gson = new Gson();
             ItemsResult result = gson.fromJson(response, ItemsResult.class);
-
             if (result.isAuth_result()) {
                 // 日常签到项目
                 mDailyLayout.removeAllViews();
+                SimpleDateFormat ft = new SimpleDateFormat("HH:mm");
+
                 int times = result.getDaily_times();
                 if (times > 0) {
                     String[] time_interval = result.getDaily_time_interval().split(";");
@@ -124,9 +143,39 @@ public class MainActivity extends BaseActivity {
                         final int index = i + 1;
                         Button btn = new Button(getBaseContext());
                         btn.setText(time_interval[i]);
-                        if (i + 1 <= result.getDaily_status()) {
+                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT
+                        );
+                        params.setMargins(0, 0, 0, 5);
+                        btn.setLayoutParams(params);
+                        List<Integer> dailyOk = result.getDaily_ok();
+                        if (dailyOk.contains(index)) {
+                            // 已签到
                             btn.setEnabled(false);
+                            btn.setBackground(btnDrawable("#AAF683"));
                         } else {
+                            // 未签到
+                            String[] t = time_interval[i].split("-");
+                            try {
+                                Date now = ft.parse(ft.format(new Date()));
+                                Date start_time = ft.parse(t[0]);
+                                Date end_time = ft.parse(t[1]);
+                                if (now.compareTo(start_time) < 0) {
+                                    // 当前时间早于开始时间
+                                    btn.setEnabled(false);
+                                } else if (now.compareTo(end_time) > 0) {
+                                    // 当前时间晚于截止时间
+                                    btn.setEnabled(false);
+                                    btn.setBackground(btnDrawable("#EE6055"));
+                                } else {
+                                    // 在签到时间内
+                                    btn.setEnabled(true);
+                                    btn.setBackground(btnDrawable("#20CFF2"));
+                                }
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
                             btn.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
@@ -147,17 +196,47 @@ public class MainActivity extends BaseActivity {
                 // 临时签到项目
                 mTempLayout.removeAllViews();
                 List<Integer> temp_id = result.getTemp_id();
+                List<String> temp_name = result.getTemp_name();
+                List<String> temp_time_interval = result.getTemp_time_interval();
                 List<Integer> temp_ok = result.getTemp_ok();
                 for (int i = 0; i < temp_id.size(); i++) {
                     final int id = temp_id.get(i);
                     String time = result.getTemp_time().get(i);
                     Button btn = new Button(getBaseContext());
-                    btn.setText(time);
+                    btn.setText(temp_name.get(i) + ": " + time + " [" + temp_time_interval.get(i) + "]");
+                    // 按钮布局
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                    );
+                    params.setMargins(0, 0, 0, 5);
+                    btn.setLayoutParams(params);
                     if (temp_ok.contains(id)) {
                         // 已签到
                         btn.setEnabled(false);
+                        btn.setBackground(btnDrawable("#AAF683"));
                     } else {
                         // 未签到
+                        String[] t = temp_time_interval.get(i).split("-");
+                        try {
+                            Date now = ft.parse(ft.format(new Date()));
+                            Date start_time = ft.parse(t[0]);
+                            Date end_time = ft.parse(t[1]);
+                            if (now.compareTo(start_time) < 0) {
+                                // 当前时间早于开始时间
+                                btn.setEnabled(false);
+                            } else if (now.compareTo(end_time) > 0) {
+                                // 当前时间晚于截止时间
+                                btn.setEnabled(false);
+                                btn.setBackground(btnDrawable("#EE6055"));
+                            } else {
+                                // 在签到时间内
+                                btn.setEnabled(true);
+                                btn.setBackground(btnDrawable("#20CFF2"));
+                            }
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
                         btn.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {

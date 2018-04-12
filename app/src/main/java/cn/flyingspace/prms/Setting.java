@@ -1,7 +1,7 @@
 package cn.flyingspace.prms;
 
 public final class Setting {
-    //    public final static String SERVER_URL = "http://192.168.10.10:8000";
+//    public final static String SERVER_URL = "http://192.168.43.171:8000";
     public final static String SERVER_URL = "http://prms.flyingspace.cn:8000";
 
     public final static String API_AUTH = SERVER_URL + "/api/auth";

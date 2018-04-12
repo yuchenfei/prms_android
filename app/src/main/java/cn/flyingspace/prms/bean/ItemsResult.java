@@ -12,19 +12,24 @@ public class ItemsResult {
      * auth_result : false
      * daily_times : 1
      * daily_time_interval : 08:00-09:00
-     * daily_status : 0
+     * daily_ok : [1]
      * temp_id : [1]
+     * temp_name: ["name"]
      * temp_time : ["08:00"]
+     * temp_time_interval: ["08:00-09:00"]
      * temp_ok : [1]
      */
 
     private boolean auth_result;
     private int daily_times;
     private String daily_time_interval;
-    private int daily_status;
+    private List<Integer> daily_ok;
     private List<Integer> temp_id;
+    private List<String> temp_name;
     private List<String> temp_time;
+    private List<String> temp_time_interval;
     private List<Integer> temp_ok;
+
 
     public boolean isAuth_result() {
         return auth_result;
@@ -50,12 +55,12 @@ public class ItemsResult {
         this.daily_time_interval = daily_time_interval;
     }
 
-    public int getDaily_status() {
-        return daily_status;
+    public List<Integer> getDaily_ok() {
+        return daily_ok;
     }
 
-    public void setDaily_status(int daily_status) {
-        this.daily_status = daily_status;
+    public void setDaily_ok(List<Integer> daily_ok) {
+        this.daily_ok = daily_ok;
     }
 
     public List<Integer> getTemp_id() {
@@ -66,12 +71,28 @@ public class ItemsResult {
         this.temp_id = temp_id;
     }
 
+    public List<String> getTemp_name() {
+        return temp_name;
+    }
+
+    public void setTemp_name(List<String> temp_name) {
+        this.temp_name = temp_name;
+    }
+
     public List<String> getTemp_time() {
         return temp_time;
     }
 
     public void setTemp_time(List<String> temp_time) {
         this.temp_time = temp_time;
+    }
+
+    public List<String> getTemp_time_interval() {
+        return temp_time_interval;
+    }
+
+    public void setTemp_time_interval(List<String> temp_time_interval) {
+        this.temp_time_interval = temp_time_interval;
     }
 
     public List<Integer> getTemp_ok() {
