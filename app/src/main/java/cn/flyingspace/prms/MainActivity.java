@@ -188,6 +188,10 @@ public class MainActivity extends BaseActivity {
                         }
                         mDailyLayout.addView(btn);
                     }
+                } else if (times == 0) {
+                    TextView tv = new TextView(getBaseContext());
+                    tv.setText("今日无需签到");
+                    mDailyLayout.addView(tv);
                 } else {
                     TextView tv = new TextView(getBaseContext());
                     tv.setText("教师还未设置日常签到");
